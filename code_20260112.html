@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抓了吗 - 官方正版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #f0f8f5;
+            font-family: "PingFang SC", "Helvetica Neue", sans-serif;
+            color: #333;
+            text-align: center;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .header {
+            font-size: 32px;
+            font-weight: 600;
+            color: #2a9d8f;
+            margin-bottom: 20px;
+        }
+        /* 签到卡片容器 */
+        .sign-card {
+            width: 90%;
+            max-width: 420px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 24px;
+            padding: 40px 25px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            position: relative;
+            overflow: hidden;
+        }
+        /* 小型信息填写区域 */
+        .form-container {
+            margin-bottom: 20px;
+            display: block;
+        }
+        .form-group-small {
+            margin-bottom: 12px;
+            text-align: left;
+        }
+        .form-label-small {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .form-input-small {
+            width: 100%;
+            height: 36px;
+            padding: 0 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #111827;
+            transition: border-color 0.2s ease;
+            background-color: #f9fafb;
+        }
+        .form-input-small:focus {
+            outline: none;
+            border-color: #22c55e;
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.1);
+        }
+        .confirm-btn {
+            width: 100%;
+            height: 36px;
+            background-color: #22c55e;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background-color 0.2s ease;
+        }
+        .confirm-btn:hover {
+            background-color: #16a34a;
+        }
+        /* 核心签到圆圈 */
+        .sign-circle-wrap {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 30px auto;
+        }
+        .sign-circle-bg {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, #4ade80 0%, #22c55e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.25);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .sign-circle-bg::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            animation: pulse 2s infinite;
+        }
+        .sign-circle-bg.signed {
+            background: radial-gradient(circle at center, #d1d5db 0%, #9ca3af 100%);
+            box-shadow: 0 0 30px rgba(156, 163, 175, 0.25);
+        }
+        .sign-circle-bg.signed::after {
+            animation: none;
+            border-color: rgba(255,255,255,0.1);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.6; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .sign-text {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+        .sign-circle-bg.signed .sign-text {
+            color: #6b7280;
+            content: "已打卡";
+        }
+        /* 提示文案 */
+        .sign-tip {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #9ca3af;
+            line-height: 1.8;
+            padding: 0 10px;
+        }
+        .sign-tip.highlight {
+            color: #22c55e;
+            font-weight: 500;
+        }
+        .sign-tip.warning {
+            color: #f59e0b;
+        }
+        .sign-notice {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #d1d5db;
+            padding: 15px;
+            border-top: 1px solid #f3f4f6;
+        }
+        /* 弹窗提示 */
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 16px 24px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            font-size: 14px;
+            color: #333;
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        /* 隐藏类 */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">一键打卡</div>
+    <div class="sign-card">
+        <!-- 小型信息填写区域 -->
+        <div class="form-container" id="formContainer">
+            <div class="form-group-small">
+                <label class="form-label-small">你的姓名</label>
+                <input type="text" class="form-input-small" id="userName" placeholder="请输入姓名">
+            </div>
+            <div class="form-group-small">
+                <label class="form-label-small">紧急联系人邮箱</label>
+                <input type="email" class="form-input-small" id="contactEmail" placeholder="请输入邮箱">
+            </div>
+            <button class="confirm-btn" id="confirmBtn">确认信息</button>
+        </div>
+
+        <!-- 签到圆圈区域 -->
+        <div class="sign-circle-wrap">
+            <div class="sign-circle-bg" id="signBtn">
+                <div class="sign-text" id="signBtnText">一键打卡</div>
+            </div>
+        </div>
+
+        <!-- 提示文案 -->
+        <div class="sign-tip" id="signTip">
+            多日未签，系统将以你的名义，在次日邮件通知你的紧急联系人
+        </div>
+        <div class="sign-notice">签到即同意 用户协议和隐私政策</div>
+    </div>
+
+    <!-- 弹窗提示 -->
+    <div class="modal" id="modal">提示内容</div>
+
+    <script>
+        let isSigned = false;
+        let isInfoConfirmed = false; // 信息是否已确认
+        let userName = "";
+        let contactEmail = "";
+
+        // DOM元素获取
+        const formContainer = document.getElementById("formContainer");
+        const confirmBtn = document.getElementById("confirmBtn");
+        const signBtn = document.getElementById("signBtn");
+        const signBtnText = document.getElementById("signBtnText");
+        const signTip = document.getElementById("signTip");
+        const userNameInput = document.getElementById("userName");
+        const contactEmailInput = document.getElementById("contactEmail");
+        const modal = document.getElementById("modal");
+
+        // 显示弹窗函数
+        function showModal(text) {
+            modal.innerText = text;
+            modal.classList.add("show");
+            setTimeout(() => modal.classList.remove("show"), 2000);
+        }
+
+        // 信息确认逻辑
+        confirmBtn.addEventListener("click", function() {
+            userName = userNameInput.value.trim();
+            contactEmail = contactEmailInput.value.trim();
+
+            if (!userName) {
+                showModal("请填写你的姓名！");
+                return;
+            }
+            if (!contactEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+                showModal("请填写有效的邮箱！");
+                return;
+            }
+
+            // 确认后隐藏表单，标记信息已确认
+            isInfoConfirmed = true;
+            formContainer.classList.add("hidden");
+            showModal("信息确认成功！");
+        });
+
+        // 签到功能逻辑
+        signBtn.addEventListener("click", function() {
+            // 未确认信息时禁止签到
+            if (!isInfoConfirmed) {
+                showModal("请先确认个人信息！");
+                return;
+            }
+
+            if (!isSigned) {
+                // 已签到状态
+                isSigned = true;
+                signBtn.classList.add("signed");
+                signBtnText.innerText = "已打卡";
+                signTip.innerText = `恭喜${userName}！今日已成功打卡，${contactEmail}不会收到通知啦~`;
+                signTip.className = "sign-tip highlight";
+                showModal("打卡成功！");
+            } else {
+                // 重复签到提示
+                signTip.innerText = "你今天已经打过卡了，明天再来吧！";
+                signTip.className = "sign-tip warning";
+                showModal("今日已打卡～");
+            }
+        });
+    </script>
+</body>
+</html>
